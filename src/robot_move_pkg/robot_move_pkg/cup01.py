@@ -118,7 +118,7 @@ def main(args=None):
         #movej([0, 0, 90, 0, 90, 0], radius=200, ra=DR_MV_RA_OVERRIDE)
         (_, _, _, rx, ry, rz), sol = get_current_posx()
         print(f'sol = {sol}')
-        movejx(posx(x, y, H_top_, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol) #컵 12개 전부 쌓여있을 때의 높이로 이동
+        movejx(posx(x, y, H_top_, rx, ry, rz), radius=20, ra=DR_MV_RA_OVERRIDE, sol=sol) #컵 12개 전부 쌓여있을 때의 높이로 이동
         joint_close()
 
         new_pos, _ = vertical_move_with_force_detection()   # 컵을 집었을 때 x, y, z값 갱신 - 다음 컵 집을 때 이 위치로 이동
@@ -137,7 +137,7 @@ def main(args=None):
             setvelj(20, 20)
 
             movel(posx(get_current_posx()[0][:3] + [90, -90, 90]), vel=80, acc=80)  # 툴 90도 회전
-            _, new_sol = get_current_posx()
+            #_, new_sol = get_current_posx()
             #print(f'new_sol = {new_sol}')
             #sol = new_sol
 
@@ -172,13 +172,14 @@ def main(args=None):
         (_, _, zi, rx, ry, rz), sol = get_current_posx()
 
         zi = zi if zi>(88.45 + z + offset) else 88.45 + z + offset
+        x0 = posx(x, y, zi, rx, ry, rz)
         x1 = posx(x, y, 88.45 + z + offset, rx, ry, rz)
         x2 = posx(x, y, 88.45 + z, rx, ry, rz)
 
-        movejx(posx(x, y, zi, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
+        #movejx(posx(x, y, zi, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
         #movejx(posx(x, y, 88.45 + z + offset, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
         #movejx(posx([0, 0, -offset, 0, 0, 0]), mod=DR_MV_MOD_REL, radius=200, ra=DR_MV_RA_OVERRIDE, v=30, a=30, sol=sol)
-        movesx([x1, x2], vel=[160, 80], acc=[160, 80], vel_opt=DR_MVS_VEL_CONST)
+        movesx([x0, x1, x2], vel=[160, 80], acc=[160, 80], vel_opt=DR_MVS_VEL_CONST)
         wait(0.3)
 
         joint_open()

@@ -136,7 +136,7 @@ def main(args=None):
             setvel(20, 20)
             setvelj(20, 20)
 
-            movel(posx(get_current_posx()[0][:3] + [90, -90, 90]), vel=10, acc=10)  # 툴 90도 회전
+            movel(posx(get_current_posx()[0][:3] + [90, -90, 90]), vel=80, acc=80)  # 툴 90도 회전
             _, new_sol = get_current_posx()
             #print(f'new_sol = {new_sol}')
             #sol = new_sol
@@ -153,14 +153,14 @@ def main(args=None):
             setvel(20, 20)
             setvelj(20, 20)
 
-            movel(posx([0, 0, 10, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=50, acc=10)  # 상단 이동 - 회전반경 확보
+            movel(posx([0, 0, 10, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=120, acc=120)  # 상단 이동 - 회전반경 확보
 
-            movel(posx([100, 0, 0, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=50, acc=10)    # x축 이동 - 특이점 회피
+            movel(posx([100, 0, H_, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=120, acc=120)    # x축 이동 - 특이점 회피
 
-            movel(posx([0, 0, H_, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=10, acc=10)   #올리고
+            #movel(posx([0, 0, H_, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=60, acc=60)   #올리고
             posj2 = get_current_posj()
             posj2[5] += 180 # 툴 회전
-            movej(posj2, vel=20, acc=20)                                            #회전
+            movej(posj2, vel=80, acc=80)                                            #회전
 
         else : movejx(posx([0, 0, H_-10, 0, 0, 0]), mod=DR_MV_MOD_REL, sol=sol)
 
@@ -178,7 +178,7 @@ def main(args=None):
         movejx(posx(x, y, zi, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
         #movejx(posx(x, y, 88.45 + z + offset, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
         #movejx(posx([0, 0, -offset, 0, 0, 0]), mod=DR_MV_MOD_REL, radius=200, ra=DR_MV_RA_OVERRIDE, v=30, a=30, sol=sol)
-        movesx([x1, x2], vel=[100, 30], acc=[100, 30], vel_opt=DR_MVS_VEL_CONST)
+        movesx([x1, x2], vel=[120, 80], acc=[120, 80], vel_opt=DR_MVS_VEL_CONST)
         wait(0.5)
 
         joint_open()
@@ -208,7 +208,7 @@ def main(args=None):
         if i_num == len(goal_points) : #컵 뒤집기
             goal_points[i_num-1] = list(goal_points[i_num-1])
             goal_points[i_num-1][1] -= 15 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
-            goal_points[i_num-1][2] += 20 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
+            goal_points[i_num-1][2] += 15 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
             put_obj(*goal_points[i_num-1])
 
         else : 

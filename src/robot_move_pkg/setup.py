@@ -25,6 +25,7 @@ setup(
             'jenga = robot_move_pkg.jenga:main',
             'cup = robot_move_pkg.cup:main',
             'cup01 = robot_move_pkg.cup01:main',
+            'cup02 = robot_move_pkg.cup02:main',
         ],
     },
 )

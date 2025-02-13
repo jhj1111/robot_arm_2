@@ -38,6 +38,7 @@ def main(args=None):
             DR_AXIS_Z,
             DR_BASE,
             DR_MV_RA_OVERRIDE,
+            DR_MVS_VEL_CONST,
             get_external_torque,
             get_current_solution_space,
             drl_script_stop,
@@ -70,7 +71,7 @@ def main(args=None):
     d_ = 55  # 컵 상단 지름 
     D_ = 76  # 컵 하단 지름
     H_ = 95  # 컵의 높이
-    H_top_ = 61.00 + H_ + num * 10  # 초기 높이 설정
+    H_top_ = 88.45 + 10*num + 20  # 초기 높이 설정
 
     # 힘 감지를 이용한 수직 이동 함수
     def vertical_move_with_force_detection():
@@ -82,7 +83,7 @@ def main(args=None):
         return get_current_posx()
     
     def point_line(x, y, h, n):
-        D = 76
+        D = 77
         H = 95
         xi = x
         points = []
@@ -101,7 +102,7 @@ def main(args=None):
         return points
 
     def points(x, y, h, n):
-        D = 76
+        D = 77
         H = 95
         cup_points = []
         
@@ -114,9 +115,10 @@ def main(args=None):
     def pick_obj(x, y):
         global H_top_, H_, start
 
+        #movej([0, 0, 90, 0, 90, 0], radius=200, ra=DR_MV_RA_OVERRIDE)
         (_, _, _, rx, ry, rz), sol = get_current_posx()
         print(f'sol = {sol}')
-        movejx(posx(x, y, H_top_, rx, ry, rz), radius=200, sol=sol) #컵 12개 전부 쌓여있을 때의 높이로 이동
+        movejx(posx(x, y, H_top_, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol) #컵 12개 전부 쌓여있을 때의 높이로 이동
         joint_close()
 
         new_pos, _ = vertical_move_with_force_detection()   # 컵을 집었을 때 x, y, z값 갱신 - 다음 컵 집을 때 이 위치로 이동
@@ -124,9 +126,10 @@ def main(args=None):
         H_top_ = new_pos[2]
         release_compliance_ctrl()
         
-        movejx(posx([0, 0, 5, 0, 0, 0]), mod=DR_MV_MOD_REL, sol=sol)
+        movejx(posx([0, 0, 5, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=20, acc=10, sol=sol)
         movejx(posx(get_current_posx()[0][:3] + [rx, ry, rz]), sol=sol) # 축 정렬
         joint_open()
+        wait(0.5)
 
         if i_num == len(goal_points):   #마지막 컵 돌리기
 
@@ -150,14 +153,13 @@ def main(args=None):
             setvel(20, 20)
             setvelj(20, 20)
 
-            movel(posx([0, 0, 10, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=10, acc=10)  # 상단 이동 - 회전반경 확보
+            movel(posx([0, 0, 10, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=50, acc=10)  # 상단 이동 - 회전반경 확보
 
-            movel(posx([100, 0, 0, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=10, acc=10)    # x축 이동 - 특이점 회피
+            movel(posx([100, 0, 0, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=50, acc=10)    # x축 이동 - 특이점 회피
 
+            movel(posx([0, 0, H_, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=10, acc=10)   #올리고
             posj2 = get_current_posj()
             posj2[5] += 180 # 툴 회전
-
-            movel(posx([0, 0, 2*H_, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=10, acc=10)   #올리고
             movej(posj2, vel=20, acc=20)                                            #회전
 
         else : movejx(posx([0, 0, H_-10, 0, 0, 0]), mod=DR_MV_MOD_REL, sol=sol)
@@ -171,9 +173,12 @@ def main(args=None):
 
         zi = zi if zi>(88.45 + z + offset) else 88.45 + z + offset
 
-        movejx(posx(x, y, zi, rx, ry, rz), sol=sol)
-        movejx(posx(x, y, 88.45 + z + offset, rx, ry, rz), radius=200,ra=DR_MV_RA_OVERRIDE, sol=sol)
-        movejx(posx([0, 0, -offset, 0, 0, 0]), mod=DR_MV_MOD_REL, v=30, a=30, sol=sol)
+        x1 = posx(x, y, 88.45 + z + offset, rx, ry, rz)
+        x2 = posx(x, y, 88.45 + z, rx, ry, rz)
+        movejx(posx(x, y, zi, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
+        #movejx(posx(x, y, 88.45 + z + offset, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
+        #movejx(posx([0, 0, -offset, 0, 0, 0]), mod=DR_MV_MOD_REL, radius=200, ra=DR_MV_RA_OVERRIDE, v=30, a=30, sol=sol)
+        movesx([x1, x2], vel=[100, 30], acc=[100, 30], vel_opt=DR_MVS_VEL_CONST)
         wait(0.5)
 
         joint_open()
@@ -190,16 +195,20 @@ def main(args=None):
     start = initialx[:2]
 
     while rclpy.ok() and i_num <= len(goal_points):
-        if i_num == 0 : joint_open()
+        if i_num == 0 : 
+            joint_open()
+            movej([0, 0, 90, 0, 90, 0], vel=80, acc=80)#, radius=200, ra=DR_MV_RA_OVERRIDE)  # 초기 위치
         
         setvel(20, 20)
-        setvelj(20, 20)
-        movej([0, 0, 90, 0, 90, 0], radius=200, ra=DR_MV_RA_OVERRIDE)  # 초기 위치
+        setvelj(60, 60)
+        #movej([0, 0, 90, 0, 90, 0], radius=200, ra=DR_MV_RA_OVERRIDE)  # 초기 위치
 
         pick_obj(*start)
 
         if i_num == len(goal_points) : #컵 뒤집기
-            list(goal_points[i_num-1])[2] += 20 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
+            goal_points[i_num-1] = list(goal_points[i_num-1])
+            goal_points[i_num-1][1] -= 15 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
+            goal_points[i_num-1][2] += 20 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
             put_obj(*goal_points[i_num-1])
 
         else : 

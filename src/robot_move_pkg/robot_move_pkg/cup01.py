@@ -160,7 +160,9 @@ def main(args=None):
             #movel(posx([0, 0, H_, 0, 0, 0]), mod=DR_MV_MOD_REL, vel=60, acc=60)   #올리고
             posj2 = get_current_posj()
             posj2[5] += 180 # 툴 회전
-            movej(posj2, vel=120, acc=120)                                            #회전
+            movej(posj2, vel=120, acc=120)
+            wait(1.0)
+            joint_open()                                            #회전
 
         else : 
             movejx(posx([0, 0, H_-10, 0, 0, 0]), mod=DR_MV_MOD_REL, sol=sol)
@@ -189,6 +191,8 @@ def main(args=None):
             movejx(posx([0, 0, offset, 0, 0, 0]), mod=DR_MV_MOD_REL,sol=sol)
             joint_close()
 
+        else : movejx(posx([0, 0, -50, 0, 0, 0]), mod=DR_MV_MOD_REL,sol=sol)
+
         i_num += 1
 
     ###main_code####
@@ -205,6 +209,9 @@ def main(args=None):
             movej([0, 0, 90, 0, 90, 0], vel=80, acc=80)#, radius=200, ra=DR_MV_RA_OVERRIDE)  # 초기 위치
             joint_close()
         
+
+        #movej([0, 0, 90, 0, 90, 0], vel=80, acc=80)
+        #joint_close()
         setvel(20, 20)
         setvelj(60, 60)
         #movej([0, 0, 90, 0, 90, 0], radius=200, ra=DR_MV_RA_OVERRIDE)  # 초기 위치
@@ -213,9 +220,9 @@ def main(args=None):
 
         if i_num == len(goal_points) : #컵 뒤집기
             goal_points[i_num-1] = list(goal_points[i_num-1])
-            goal_points[i_num-1][0] += 5
-            goal_points[i_num-1][1] -= 15 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
-            goal_points[i_num-1][2] += 16 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
+            #goal_points[i_num-1][0] += 5
+            goal_points[i_num-1][1] -= 25 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
+            goal_points[i_num-1][2] += 16+H_ #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
             put_obj(*goal_points[i_num-1])
 
         else : 

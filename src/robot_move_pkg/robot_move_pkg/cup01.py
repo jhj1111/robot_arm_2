@@ -1,5 +1,5 @@
 import rclpy
-import math
+import math, time
 
 # for single robot
 ROBOT_ID   = "dsr01"
@@ -83,7 +83,7 @@ def main(args=None):
         return get_current_posx()
     
     def point_line(x, y, h, n):
-        D = 77
+        D = 79
         H = 95
         xi = x
         points = []
@@ -102,7 +102,7 @@ def main(args=None):
         return points
 
     def points(x, y, h, n):
-        D = 77
+        D = 79
         H = 95
         cup_points = []
         
@@ -118,9 +118,9 @@ def main(args=None):
         #movej([0, 0, 90, 0, 90, 0], radius=200, ra=DR_MV_RA_OVERRIDE)
         (_, _, _, rx, ry, rz), sol = get_current_posx()
         print(f'sol = {sol}')
-        movejx(posx(x, y, H_top_, rx, ry, rz), radius=20, ra=DR_MV_RA_OVERRIDE, sol=sol) #컵 12개 전부 쌓여있을 때의 높이로 이동
-        joint_close()
-
+        movejx(posx(x, y, H_top_, rx, ry, rz), sol=sol) #ra=DR_MV_RA_OVERRIDE, 컵 12개 전부 쌓여있을 때의 높이로 이동
+        wait(0.5)
+        
         new_pos, _ = vertical_move_with_force_detection()   # 컵을 집었을 때 x, y, z값 갱신 - 다음 컵 집을 때 이 위치로 이동
         start = new_pos[:2]
         H_top_ = new_pos[2]
@@ -162,13 +162,14 @@ def main(args=None):
             posj2[5] += 180 # 툴 회전
             movej(posj2, vel=120, acc=120)                                            #회전
 
-        else : movejx(posx([0, 0, H_-10, 0, 0, 0]), mod=DR_MV_MOD_REL, sol=sol)
+        else : 
+            movejx(posx([0, 0, H_-10, 0, 0, 0]), mod=DR_MV_MOD_REL, sol=sol)
 
     # 물체를 목표 위치에 놓는 함수
     def put_obj(x, y, z):
         global i_num
         
-        offset = 30
+        offset = 40
         (_, _, zi, rx, ry, rz), sol = get_current_posx()
 
         zi = zi if zi>(88.45 + z + offset) else 88.45 + z + offset
@@ -179,12 +180,14 @@ def main(args=None):
         #movejx(posx(x, y, zi, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
         #movejx(posx(x, y, 88.45 + z + offset, rx, ry, rz), radius=200, ra=DR_MV_RA_OVERRIDE, sol=sol)
         #movejx(posx([0, 0, -offset, 0, 0, 0]), mod=DR_MV_MOD_REL, radius=200, ra=DR_MV_RA_OVERRIDE, v=30, a=30, sol=sol)
-        movesx([x0, x1, x2], vel=[160, 80], acc=[160, 80], vel_opt=DR_MVS_VEL_CONST)
+        movesx([x0, x1, x2], vel=[200, 200], acc=[200, 200], vel_opt=DR_MVS_VEL_CONST)
         wait(0.3)
 
         joint_open()
 
-        if not i_num == len(goal_points) : movejx(posx([0, 0, offset, 0, 0, 0]), mod=DR_MV_MOD_REL,sol=sol)
+        if not i_num == len(goal_points) : 
+            movejx(posx([0, 0, offset, 0, 0, 0]), mod=DR_MV_MOD_REL,sol=sol)
+            joint_close()
 
         i_num += 1
 
@@ -197,8 +200,10 @@ def main(args=None):
 
     while rclpy.ok() and i_num <= len(goal_points):
         if i_num == 0 : 
+            start_time = time.time()
             joint_open()
             movej([0, 0, 90, 0, 90, 0], vel=80, acc=80)#, radius=200, ra=DR_MV_RA_OVERRIDE)  # 초기 위치
+            joint_close()
         
         setvel(20, 20)
         setvelj(60, 60)
@@ -208,14 +213,16 @@ def main(args=None):
 
         if i_num == len(goal_points) : #컵 뒤집기
             goal_points[i_num-1] = list(goal_points[i_num-1])
+            goal_points[i_num-1][0] += 5
             goal_points[i_num-1][1] -= 15 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
-            goal_points[i_num-1][2] += 18 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
+            goal_points[i_num-1][2] += 16 #마지막 포인트 - 마지막 컵 위치에서 z +20 상단
             put_obj(*goal_points[i_num-1])
 
         else : 
             put_obj(*goal_points[i_num])
 
-        
+    end_time = time.time()
+    print(f'time = {end_time - start_time}')
     rclpy.shutdown()
     
 if __name__ == "__main__":
